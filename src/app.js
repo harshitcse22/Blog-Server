@@ -39,6 +39,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Blogging API Server',
+    status: 'Running',
+    version: '1.0.0'
+  });
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ 
