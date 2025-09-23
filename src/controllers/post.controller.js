@@ -216,29 +216,17 @@ const postController = {
 
   likePost: async (req, res) => {
     try {
-      console.log('Like request - User:', req.user, 'Post ID:', req.params.id);
       const userId = req.user.userId;
       const post = await Post.findById(req.params.id);
       
-      if (!post) {
-        console.log('Post not found:', req.params.id);
-        return res.status(404).json({ message: 'Post not found' });
-      }
+      if (!post) return res.status(404).json({ message: 'Post not found' });
       
       const isLiked = post.likes.includes(userId);
-      console.log('Current like status:', isLiked, 'Likes array:', post.likes);
-      
       const update = isLiked 
         ? { $pull: { likes: userId }, $inc: { likesCount: -1 } }
         : { $addToSet: { likes: userId }, $inc: { likesCount: 1 } };
       
-      const updatedPost = await Post.findByIdAndUpdate(
-        req.params.id, 
-        update, 
-        { new: true }
-      );
-      
-      console.log('Updated post likes:', updatedPost.likesCount, 'New status:', !isLiked);
+      const updatedPost = await Post.findByIdAndUpdate(req.params.id, update, { new: true });
       
       res.json({ 
         likesCount: updatedPost.likesCount, 
@@ -246,19 +234,14 @@ const postController = {
       });
     } catch (error) {
       console.error('likePost error:', error);
-      res.status(500).json({ message: 'Failed to update like', error: error.message });
+      res.status(500).json({ message: 'Failed to update like' });
     }
   },
 
   addComment: async (req, res) => {
     try {
-      console.log('Add comment request - User:', req.user, 'Post ID:', req.params.id, 'Content:', req.body.content);
-      
       const post = await Post.findById(req.params.id);
-      if (!post) {
-        console.log('Post not found:', req.params.id);
-        return res.status(404).json({ message: 'Post not found' });
-      }
+      if (!post) return res.status(404).json({ message: 'Post not found' });
       
       const comment = new Comment({
         content: req.body.content,
@@ -269,9 +252,6 @@ const postController = {
       await comment.save();
       await comment.populate('author', 'name avatar username');
       
-      console.log('Comment created:', comment);
-      
-      // Update post with comment and increment count
       await Post.findByIdAndUpdate(req.params.id, {
         $push: { comments: comment._id },
         $inc: { commentsCount: 1 }
@@ -280,7 +260,7 @@ const postController = {
       res.status(201).json(comment);
     } catch (error) {
       console.error('Add comment error:', error);
-      res.status(500).json({ message: 'Failed to add comment', error: error.message });
+      res.status(500).json({ message: 'Failed to add comment' });
     }
   },
 
